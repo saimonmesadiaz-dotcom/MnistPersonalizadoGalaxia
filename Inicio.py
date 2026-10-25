@@ -81,7 +81,7 @@ html, body, .stApp, .stApp p, .stApp label, .stApp li, .stApp span {
     position:relative;
     z-index:1;
     max-width:1200px;
-    padding-top:2rem;
+    padding-top:4rem;
 }
 
 .deco {
@@ -126,7 +126,7 @@ html, body, .stApp, .stApp p, .stApp label, .stApp li, .stApp span {
 .cohete {display:inline-block; animation:volar 3s ease-in-out infinite;}
 
 /* TARJETAS (st.container con borde) */
-[data-testid="stVerticalBlockBorderWrapper"] {
+[data-testid="stMain"] [data-testid="stVerticalBlockBorderWrapper"] {
     background:rgba(20,10,60,.66);
     border:2px solid rgba(77,240,255,.38) !important;
     border-radius:26px !important;
@@ -153,10 +153,11 @@ html, body, .stApp, .stApp p, .stApp label, .stApp li, .stApp span {
 /* PANTALLA DE LA NAVE (lienzo) */
 iframe[title*="canvas"] {
     display:block;
+    width:400px !important;
+    max-width:100%;
     margin:0 auto;
-    border-radius:22px;
-    border:4px solid #4df0ff;
-    box-shadow:0 0 0 6px rgba(77,240,255,.2),0 0 40px rgba(77,240,255,.55);
+    border-radius:18px;
+    box-shadow:0 0 0 4px #4df0ff,0 0 0 9px rgba(77,240,255,.22),0 0 40px rgba(77,240,255,.55);
 }
 
 /* BOTONES */
@@ -173,13 +174,17 @@ iframe[title*="canvas"] {
 .stButton > button:hover {transform:translateY(-3px) scale(1.03);}
 .stButton > button:active {transform:translateY(2px);}
 
-[data-testid="stBaseButton-primary"] {
+.stButton > button[kind="primary"],
+[data-testid="stBaseButton-primary"],
+[data-testid="baseButton-primary"] {
     background:linear-gradient(135deg,#ff9f43,#ff3d81) !important;
     color:#fff !important;
     box-shadow:0 6px 0 #a3194f,0 0 26px rgba(255,61,129,.6);
 }
 
-[data-testid="stBaseButton-secondary"] {
+.stButton > button[kind="secondary"],
+[data-testid="stBaseButton-secondary"],
+[data-testid="baseButton-secondary"] {
     background:linear-gradient(135deg,#4df0ff,#6a7bff) !important;
     color:#07123a !important;
     box-shadow:0 6px 0 #2a3fb0;
@@ -356,6 +361,29 @@ iframe[title*="canvas"] {
 }
 [data-testid="stSidebar"] * {color:#f4f1ff;}
 
+[data-testid="stSidebar"] [data-testid="stVerticalBlockBorderWrapper"] {
+    background:none;
+    border:0 !important;
+    box-shadow:none;
+    backdrop-filter:none;
+}
+
+.side {padding:.3rem .5rem 1rem;}
+
+.chip {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:.8rem;
+    margin:.5rem 0;
+    padding:.6rem .95rem;
+    border-radius:16px;
+    font-size:1rem;
+    background:rgba(77,240,255,.1);
+    border:1px solid rgba(77,240,255,.35);
+}
+.chip span {font-weight:700; color:#ffd93d !important; word-break:break-all; text-align:right;}
+
 .stSpinner, .stSpinner * {color:#ffd93d !important; font-size:1.2rem;}
 
 @media (max-width:700px) {
@@ -401,19 +429,22 @@ model, ruta_modelo, errores_modelo = cargar_modelo()
 # BARRA LATERAL
 # ============================================================
 with st.sidebar:
-    html('<div class="titulo-tarjeta">🛰️ Panel de la nave</div>')
-
-    if model is not None:
-        st.write(f"🤖 Cerebro robótico: cargado desde `{ruta_modelo}`")
-    st.write(f"**TensorFlow:** {tf.__version__}")
-    st.write(f"**Keras:** {keras.__version__}")
+    estado = "listo" if model is not None else "no encontrado"
+    archivo = ruta_modelo or "sin archivo"
 
     html(
-        """
-<div class="titulo-tarjeta" style="margin-top:1.4rem">🎒 Cómo jugar</div>
-<div class="paso"><b>1</b> Dibuja un número del 0 al 9.</div>
-<div class="paso"><b>2</b> Toca el botón de lanzar.</div>
-<div class="paso"><b>3</b> Descubre qué número ve el alienígena.</div>
+        f"""
+<div class="side">
+<div class="titulo-tarjeta">🛰️ Panel de la nave</div>
+<div class="chip">🤖 Cerebro robótico<span>{estado}</span></div>
+<div class="chip">📁 Archivo<span>{archivo}</span></div>
+<div class="chip">TensorFlow<span>{tf.__version__}</span></div>
+<div class="chip">Keras<span>{keras.__version__}</span></div>
+<div class="titulo-tarjeta" style="margin-top:1.8rem">🎒 Cómo jugar</div>
+<div class="paso"><b>1</b><span>Dibuja un número del 0 al 9.</span></div>
+<div class="paso"><b>2</b><span>Toca el botón de lanzar.</span></div>
+<div class="paso"><b>3</b><span>Descubre qué número ve el alienígena.</span></div>
+</div>
 """
     )
 
@@ -461,6 +492,7 @@ with col_lienzo:
             width=400,
             height=400,
             drawing_mode="freedraw",
+            display_toolbar=False,
             key=f"canvas_{st.session_state.lienzo}",
         )
 
@@ -470,7 +502,8 @@ with col_control:
         html(
             """
 <div style="font-size:1.1rem;margin-bottom:1rem">Dibuja el número <b>grande y
-centrado</b> con tu dedo o con el mouse.</div>
+centrado</b> con tu dedo o con el mouse. Si te equivocas, toca <b>Limpiar el espacio</b>
+y empieza de nuevo.</div>
 """
         )
         predecir = st.button("🚀 ¡Lanzar!", type="primary", use_container_width=True)
@@ -571,6 +604,10 @@ if predecir:
             with st.container(border=True):
                 html(filas)
 
+            with st.expander("🔬 Informe del científico alienígena"):
+                for i, p in enumerate(prediccion[0]):
+                    marca = "🎯" if i == digito else ""
+                    st.write(f"{marca} **Número {i}**: {p * 100:.2f}%")
             with st.expander("🔬 Informe del científico alienígena"):
                 for i, p in enumerate(prediccion[0]):
                     marca = "🎯" if i == digito else ""
