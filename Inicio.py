@@ -608,7 +608,3 @@ if predecir:
                 for i, p in enumerate(prediccion[0]):
                     marca = "🎯" if i == digito else ""
                     st.write(f"{marca} **Número {i}**: {p * 100:.2f}%")
-            with st.expander("🔬 Informe del científico alienígena"):
-                for i, p in enumerate(prediccion[0]):
-                    marca = "🎯" if i == digito else ""
-                    st.write(f"{marca} **Número {i}**: {p * 100:.2f}%")
